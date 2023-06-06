@@ -29,34 +29,72 @@ Predict for custom inputs using this model
 NAME : CHARUMATHI R
 REF NO : 212222240021
 ```python
+##Libraries
 import pandas as pd
 import numpy as np
-import tensorflow as tf
-from tensorflow.keras.datasets import cifar10
-from tensorflow.keras.applications import VGG19
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Flatten, Dropout
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report,confusion_matrix
+
+from keras import Sequential
+from keras.layers import Flatten,Dense,BatchNormalization,Activation,Dropout
+from tensorflow.keras import utils
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import ReduceLROnPlateau
+
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
+from keras.datasets import cifar10
+from tensorflow.keras.applications import VGG19
+##Load Dataset & Increse the size of it
 (x_train,y_train),(x_test,y_test)=cifar10.load_data()
- x_train = x_train.astype('float32') / 255.0
-x_test = x_test.astype('float32') / 255.0         
-base_model=VGG19(include_top = False,weights='imagenet',input_shape=(32,32,3))
+##One Hot Encoding Outputs
+y_train_onehot = utils.to_categorical(y_train,10)
+y_test_onehot = utils.to_categorical(y_test,10)
+##Import VGG-19 model & add dense layers
+base_model = VGG19(include_top=False, weights = "imagenet",
+                   input_shape = (32,32,3))
+
 for layer in base_model.layers:
   layer.trainable = False
-model=Sequential()
+
+model = Sequential()
 model.add(base_model)
 model.add(Flatten())
-model.add(Dense(512,activation='relu'))
+model.add(Dense(250,activation=("relu")))
 model.add(Dropout(0.2))
-model.add(Dense(10,activation='softmax'))
+model.add(Dense(100,activation=("relu")))
+model.add(Dropout(0.35))
+model.add(Dense(10,activation=("softmax")))
 model.summary()
-model.compile(optimizer=Adam(learning_rate=0.001), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-learning_rate_reduction = ReduceLROnPlateau(monitor='val_accuracy', patience=3, verbose=1, factor=0.5, min_lr=0.00001)     
-model.fit(x_train, y_train, batch_size=64, epochs=50, validation_data=(x_test, y_test), callbacks=[learning_rate_reduction])
+
+model.compile(optimizer=Adam(learning_rate=0.001), 
+              loss='sparse_categorical_crossentropy', 
+              metrics=['accuracy'])
+
+learning_rate_reduction = ReduceLROnPlateau(monitor='val_accuracy', 
+                                            patience=3, 
+                                            verbose=1, 
+                                            factor=0.5, 
+                                            min_lr=0.00001)
+
+model.fit(x_train, y_train, 
+          batch_size=500, epochs=10, 
+          validation_data=(x_test, y_test), 
+          callbacks=[learning_rate_reduction])
+##Metrics
 metrics = pd.DataFrame(model.history.history)
+
 metrics[['loss','val_loss']].plot()
+
 metrics[['accuracy','val_accuracy']].plot()
+
+x_test_predictions = np.argmax(model.predict(x_test), axis=1)
+
+print(confusion_matrix(y_test,x_test_predictions))
+
+print(classification_report(y_test,x_test_predictions))
+```
+
 
 ```
 
