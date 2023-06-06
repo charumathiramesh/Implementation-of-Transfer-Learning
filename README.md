@@ -109,12 +109,13 @@ print(classification_report(y_test,x_test_predictions))
 ![conf](https://github.com/charumathiramesh/Implementation-of-Transfer-Learning/assets/120204455/659694c9-b1d6-4d21-b245-9cb36d518da8)
 
 ### Conclusion
+```
 We got an Accuracy of 60% with this model.There could be several reasons for not achieving higher accuracy. Here are a few possible explanations
 
   1.Dataset compatibility
   2.Inadequate training data:
   3.Model capacity
-
+```
 
 
 ## RESULT
